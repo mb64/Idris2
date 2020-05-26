@@ -306,13 +306,13 @@ installFrom pname builddir destdir ns@(m :: dns)
              | Left err => throw (InternalError ("Can't copy file " ++ ttcPath ++ " to " ++ destPath))
          pure ()
 
--- Install all the built modules in prefix/package/
+-- Install all the built modules in sysroot/prefix/package/
 -- We've already built and checked for success, so if any don't exist that's
 -- an internal error.
 install : {auto c : Ref Ctxt Defs} ->
           {auto o : Ref ROpts REPLOpts} ->
-          PkgDesc -> Core ()
-install pkg
+          String -> PkgDesc -> Core ()
+install sysroot pkg
     = do defs <- get Ctxt
          let build = build_dir (dirs (options defs))
          runScript (preinstall pkg)
@@ -322,8 +322,9 @@ install pkg
          Just srcdir <- coreLift currentDir
              | Nothing => throw (InternalError "Can't get current directory")
          -- Make the package installation directory
-         let installPrefix = dir_prefix (dirs (options defs)) ++
-                             dirSep ++ "idris2-" ++ showVersion False version
+         let installPrefix = let pre = dir_prefix (dirs (options defs)) ++
+                                       dirSep ++ "idris2-" ++ showVersion False version
+                             in if sysroot == "" then pre else sysroot ++ dirSep ++ pre
          True <- coreLift $ changeDir installPrefix
              | False => throw (InternalError ("Can't change directory to " ++ installPrefix))
          Right _ <- coreLift $ mkdirs [name pkg]
@@ -453,9 +454,10 @@ processPackage cmd file
               Build => do [] <- build pkg
                              | errs => coreLift (exitWith (ExitFailure 1))
                           pure ()
-              Install => do [] <- build pkg
-                               | errs => coreLift (exitWith (ExitFailure 1))
-                            install pkg
+              Install sysroot =>
+                  do [] <- build pkg
+                        | errs => coreLift (exitWith (ExitFailure 1))
+                     install sysroot pkg
               Clean => clean pkg
               REPL => runRepl pkg
 

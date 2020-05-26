@@ -15,14 +15,15 @@ import System
 public export
 data PkgCommand
       = Build
-      | Install
+      | Install String
       | Clean
       | REPL
 
 export
 Show PkgCommand where
   show Build = "--build"
-  show Install = "--install"
+  show (Install "") = "--install"
+  show (Install d) = "--install-to " ++ d
   show Clean = "--clean"
   show REPL = "--repl"
 
@@ -132,8 +133,10 @@ options = [MkOpt ["--check", "-c"] [] [CheckOnly]
               (Just "Show paths"),
            MkOpt ["--build"] ["package file"] (\f => [Package Build f])
               (Just "Build modules/executable for the given package"),
-           MkOpt ["--install"] ["package file"] (\f => [Package Install f])
+           MkOpt ["--install"] ["package file"] (\f => [Package (Install "") f])
               (Just "Install the given package"),
+           MkOpt ["--install-to"] ["sysroot","package file"] (\d => \f => [Package (Install d) f])
+              (Just "Install the given package to a specific sysroot. Useful for packagers"),
            MkOpt ["--clean"] ["package file"] (\f => [Package Clean f])
               (Just "Clean intermediate files/executables for the given package"),
 
