@@ -58,6 +58,12 @@ implementation (Monad f, Alternative f) => Alternative (StateT st f) where
     empty = lift empty
     (ST f) <|> (ST g) = ST (\st => f st <|> g st)
 
+public export
+implementation HasIO m => HasIO (StateT st m) where
+  liftIO x = ST $ \st => do
+    val <- liftIO x
+    pure (val, st)
+
 ||| Apply a function to modify the context of this computation
 public export
 modify : MonadState stateType m => (stateType -> stateType) -> m ()
