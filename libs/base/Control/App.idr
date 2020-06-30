@@ -213,7 +213,7 @@ get tag @{MkState r}
           MkAppRes (Right val)
 
 export
-put : (0 tag : _) -> State tag t e => (1 val : t) -> App {l} e ()
+put : (0 tag : _) -> State tag t e => (val : t) -> App {l} e ()
 put tag @{MkState r} val
     = MkApp $
           prim_app_bind (toPrimApp $ writeIORef r val) $ \val =>
