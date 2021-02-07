@@ -161,10 +161,8 @@ elabTermSub {vars} defining mode opts nest env env' sub tm ty
          -- Linearity and hole checking.
          -- on the LHS, all holes need to have been solved
          chktm <- the (Core (Term vars)) $ case mode of
-              InLHS _ => do when (not incase) $ checkUserHoles True
-                            pure chktm
-              InTransform => do when (not incase) $ checkUserHoles True
-                                pure chktm
+              InLHS _     => checkUserHoles True *> pure chktm
+              InTransform => checkUserHoles True *> pure chktm
               -- elsewhere, all unification problems must be
               -- solved, though we defer that if it's a case block since we
               -- might learn a bit more later.
